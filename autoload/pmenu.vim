@@ -27,7 +27,9 @@ fun! s:prompt() dict
         if empty(item) | break | endif
         let [k, n, C] = item                " key, name, command
 
-        if len(k) > 1 | let flag = k[1] | endif
+        if k[len(k)-1] == ':' || k[len(k)-1] == '!'
+            let flag = k[len(k)-1]
+        endif
 
         let t = type(C)
         if t == v:t_list                    " Enter submenu
@@ -62,6 +64,24 @@ fun! s:add_item(char, description, keys) dict
     call add(self.items, [a:char, a:description, a:keys])
 endf
 
+" transform key code to string
+fun! s:keycode2str(key)
+    if a:key[len(a:key)-1] == ':' || a:key[len(a:key)-1] == '!'
+        let a_key = a:key[0:len(a:key)-2]
+    else
+        let a_key = a:key
+    endif
+    let keycode = {"\<F1>":'F1',"\<F2>":'F2',"\<F3>":'F3',"\<F4>":'F4',
+                \"\<F5>":'F5',"\<F6>":'F6',"\<F7>":'F7',"\<F8>":'F8',
+                \"\<F9>":'F9',"\<F10>":'F10',"\<F11>":'F11',"\<F12>":'F12'
+                \}
+    if get(keycode, a_key, -1) != -1
+        return keycode[a_key]
+    else
+        return strtrans(a_key)
+    endif
+endf
+
 " Echo prompt {{{
 fun! s:echo_prompt(names, items)
     echo ''
@@ -84,9 +104,9 @@ fun! s:echo_prompt(names, items)
             continue
         endif
         let [k, n, C] = item                " key, name, command
-        echoh Normal | echon '  ['
-        echoh Underlined  | echon printf('%2S', strtrans(k[0]))
-        echoh Normal | echon ']  '
+        "echoh Normal | echon ''
+        echoh Underlined  | echon printf('%5S',s:keycode2str(k))
+        echoh Normal | echon '|  '
         echoh Type | echon n
         echon repeat(' ', maxnamelen - strdisplaywidth(n) + 2)
         let t = type(C)
@@ -113,8 +133,13 @@ endf
 " Find a item {{{
 fun! s:find_item(items, key)
     for item in a:items
-        if type(item) == v:t_list && item[0][0] ==# a:key
-            return item
+        if type(item) == v:t_list
+            let l = len(item[0])
+            if item[0][l-1] == ':' || item[0][l-1] == '!'
+                if item[0][0:l-2] ==# a:key | return item | endif
+            else
+                if item[0] ==# a:key | return item | endif
+            endif
         endif
     endfo
 endf

@@ -29,7 +29,6 @@ endif
 " The last menu-item user selected
 fun! popup#last()
     let [cmd, flag] = g:popup.last
-    " echom cmd flag
     if flag == ':'
         call timer_start(1, {->execute(cmd)})
         return popup#nop()
