@@ -32,11 +32,11 @@ fun! s:prompt() dict
         endif
 
         let t = type(C)
-        if t == v:t_list                    " Enter submenu
+        if t == type([])                    " Enter submenu
             call add(stack_names, n)
             call add(stack_items, C)
         else
-            return [t == v:t_func ? C(): C, flag]
+            return [t == type(function("tr")) ? C(): C, flag]
         endif
     endw
 endf
@@ -100,7 +100,7 @@ fun! s:echo_prompt(names, items)
     " show the menu's items
     for item in a:items
         echon "\n"
-        if type(item) == v:t_string
+        if type(item) == type("")
             echoh Comment | echon item
             continue
         endif
@@ -111,9 +111,9 @@ fun! s:echo_prompt(names, items)
         echoh Type | echon n
         echon repeat(' ', maxnamelen - strdisplaywidth(n) + 2)
         let t = type(C)
-        if t == v:t_dict || t == v:t_list   " Submenu
+        if t == type({}) || t == type([])   " Submenu
             echoh WarningMsg | echon '>'
-        elseif t == v:t_func                " Function
+        elseif t == type(function("tr"))                " Function
             echoh Include | echon string(C)[:restlen]
         else                                " Command
             echoh Function | echon strtrans(C)[:restlen]
@@ -134,7 +134,7 @@ endf
 " Find a item {{{
 fun! s:find_item(items, key)
     for item in a:items
-        if type(item) == v:t_list
+        if type(item) == type([])
             let l = len(item[0])
             if item[0][l-1] == ':' || item[0][l-1] == '!'
                 if item[0][0:l-2] ==# a:key | return item | endif
@@ -155,12 +155,12 @@ endf
 " Strip the ALT-key {{{
 if has('nvim')
     fun! s:strip_alt(c)
-        let k = type(a:c) == v:t_number ? nr2char(a:c): a:c
+        let k = type(a:c) == type(0) ? nr2char(a:c): a:c
         return len(k) > 1 ? split(k, '.\zs')[-1]: k
     endf
 else
     fun! s:strip_alt(c)
-        if type(a:c) == v:t_number
+        if type(a:c) == type(0)
             let n = a:c
             return nr2char(n > 127 ? n - 128 : n)
         endif
